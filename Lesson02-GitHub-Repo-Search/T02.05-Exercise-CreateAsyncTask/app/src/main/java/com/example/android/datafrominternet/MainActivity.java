@@ -15,6 +15,7 @@
  */
 package com.example.android.datafrominternet;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import com.example.android.datafrominternet.utilities.NetworkUtils;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
@@ -60,18 +62,45 @@ public class MainActivity extends AppCompatActivity {
         URL githubSearchUrl = NetworkUtils.buildUrl(githubQuery);
         mUrlDisplayTextView.setText(githubSearchUrl.toString());
         String githubSearchResults;// = null;
-        try {
-            githubSearchResults = NetworkUtils.getResponseFromHttpUrl(githubSearchUrl);
-            mSearchResultsTextView.setText(githubSearchResults);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // TODO (4) Create a new GithubQueryTask and call its execute method, passing in the url to query
+        new GithubQueryTask(this).execute(githubSearchUrl);
     }
 
-    // TODO (1) Create a class called GithubQueryTask that extends AsyncTask<URL, Void, String>
-    // TODO (2) Override the doInBackground method to perform the query. Return the results. (Hint: You've already written the code to perform the query)
-    // TODO (3) Override onPostExecute to display the results in the TextView
+
+    public static class GithubQueryTask extends AsyncTask<URL, Void, String> {
+
+        private WeakReference<MainActivity> activityReference; //See https://stackoverflow.com/questions/44309241/warning-this-asynctask-class-should-be-static-or-leaks-might-occur
+
+        GithubQueryTask(MainActivity context) {
+            activityReference = new WeakReference<>(context);
+        }
+
+        @Override
+        protected String doInBackground(URL... urls) {
+            URL searchUrl = urls[0];
+            String githubSearchResults = null;
+            try {
+                githubSearchResults = NetworkUtils.getResponseFromHttpUrl(searchUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return githubSearchResults;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+
+            if (s != null && !s.equals("")) {
+
+                MainActivity activity = activityReference.get();
+                if (activity == null) {
+                    return;
+                }
+
+                TextView textView = activity.findViewById(R.id.tv_github_search_results_json);
+                textView.setText(s);
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
