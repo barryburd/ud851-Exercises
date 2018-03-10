@@ -9,6 +9,23 @@ package com.example.android.background.sync;
 
 // TODO (8) If the action equals ACTION_INCREMENT_WATER_COUNT, call this class's incrementWaterCount
 
+import android.content.Context;
+
+import com.example.android.background.utilities.PreferenceUtilities;
+
 // TODO (3) Create a private static void method called incrementWaterCount
 // TODO (4) Add a Context called context to the argument list
 // TODO (5) From incrementWaterCount, call the PreferenceUtility method that will ultimately update the water count
+public class ReminderTasks {
+    final public static String ACTION_INCREMENT_WATER_COUNT = "increment water count";
+    Context context;
+
+    private static void incrementWaterCount(Context context) {
+        PreferenceUtilities.incrementWaterCount(context);
+    }
+
+    static void executeTask(Context context, String action) {
+        if (action.equals(ACTION_INCREMENT_WATER_COUNT))
+            incrementWaterCount(context);
+    }
+}
